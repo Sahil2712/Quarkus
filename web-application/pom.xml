@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright(c) 2016-2017 IBM, Red Hat, and others.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>microprofile-conference</artifactId>
+        <groupId>io.microprofile.showcase</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>web-application</artifactId>
+    <name>Conference :: Web</name>
+
+    <!--packaging>war</packaging-->
+
+    <properties>
+        <src.dir>src/main/java</src.dir>
+
+        <service.name>${project.artifactId}</service.name>
+        <service.name>${project.artifactId}</service.name>
+        <service.port>9191</service.port>
+        <docker.user>example</docker.user>
+        <icon>http://microprofile.io/app/images/logo.png</icon>
+    </properties>
+
+    <build>
+        <sourceDirectory>${src.dir}</sourceDirectory>
+        <plugins>
+            <!--Deals with npm, bower and gulp-->
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.0</version>
+                <executions>
+                    <execution>
+                        <id>install-node-and-npm</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                        <configuration>
+                            <nodeVersion>v7.0.0</nodeVersion>
+                            <npmVersion>3.10.9</npmVersion>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-install</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>install</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>gulp-build</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>gulp</goal>
+                        </goals>
+                        <configuration>
+                            <!--<arguments>build-with-tests</arguments>-->
+                            <arguments>build</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <installDirectory>${user.home}/.microprofile/node-installation-dir</installDirectory>
+                    <workingDirectory>src/main/static</workingDirectory>
+                </configuration>
+            </plugin>
+        </plugins>
+
+    </build>
+
+    <profiles>
+        <profile>
+            <id>tomee</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+
+            <properties>
+                <src.dir>src/main/local/java</src.dir>
+            </properties>
+            <build>
+                <finalName>${warfile.name}</finalName>
+                <testResources>
+                    <testResource>
+                        <directory>src/test/local/java</directory>
+                    </testResource>
+                    <testResource>
+                        <directory>src/test/local/resources</directory>
+                    </testResource>
+                </testResources>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy-endpoint-service</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${basedir}/src/main/static</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>src/main/local/static</directory>
+                                            <filtering>false</filtering>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <configuration>
+                            <failOnMissingWebXml>false</failOnMissingWebXml>
+                            <attachClasses>true</attachClasses>
+                            <webResources>
+                                <resource>
+                                    <directory>src/main/local/webapp</directory>
+                                </resource>
+                                <resource>
+                                    <directory>target/static-resources</directory>
+                                </resource>
+                            </webResources>
+                            <warName>${warfile.name}</warName>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.tomee.maven</groupId>
+                        <artifactId>tomee-maven-plugin</artifactId>
+                        <configuration>
+                            <tomeeVersion>${version.tomee}</tomeeVersion>
+                            <tomeeClassifier>webprofile</tomeeClassifier>
+                            <!--@formatter:off-->
+                            <webapps>
+                                <webapp>${project.groupId}:microservice-speaker:${project.version}?name=microservice-speaker</webapp>
+                                <webapp>${project.groupId}:microservice-session:${project.version}?name=microservice-session</webapp>
+                                <webapp>${project.groupId}:microservice-schedule:${project.version}?name=microservice-schedule</webapp>
+                                <webapp>${project.groupId}:microservice-vote:${project.version}?name=microservice-vote</webapp>
+                            </webapps>
+                            <!--@formatter:on-->
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+            <dependencies>
+
+                <!--PROVIDED-->
+                <dependency>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>javax.servlet-api</artifactId>
+                    <version>3.1.0</version>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-lang3</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+
+                <!--SERVICES-->
+                <!--These are here to enforce the build order. The UI is independent of the Microprofile Services-->
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>microservice-speaker</artifactId>
+                    <version>${project.version}</version>
+                    <type>war</type>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>microservice-schedule</artifactId>
+                    <version>${project.version}</version>
+                    <type>war</type>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>microservice-session</artifactId>
+                    <version>${project.version}</version>
+                    <type>war</type>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>microservice-vote</artifactId>
+                    <version>${project.version}</version>
+                    <type>war</type>
+                    <scope>provided</scope>
+                </dependency>
+
+                <!--TEST-->
+                <dependency>
+                    <groupId>org.apache.tomee</groupId>
+                    <artifactId>arquillian-tomee-embedded</artifactId>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.tomee</groupId>
+                    <artifactId>tomee-jaxrs</artifactId>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>ui</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy-endpoint-service</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${basedir}/src/main/static</outputDirectory>
+                                    <overwrite>true</overwrite>
+                                    <resources>
+                                        <resource>
+                                            <directory>src/main/start/static</directory>
+                                            <filtering>false</filtering>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>fabric8</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <!--This plugin requires that you Docker environment variables are defined correctly, check them with:-->
+                        <!--docker-machine env-->
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>fabric8-maven-plugin</artifactId>
+                        <configuration>
+                            <mode>kubernetes</mode>
+                            <images>
+                                <image>
+                                    <name>${docker.user}/${project.artifactId}:${project.version}</name>
+                                    <build>
+                                        <from>tomee:8-jdk-7.0.1-plus</from>
+                                        <assembly>
+                                            <basedir>/deployments</basedir>
+                                            <descriptorRef>artifact</descriptorRef>
+                                        </assembly>
+                                    </build>
+                                    <watch>
+                                        <interval>5000</interval>
+                                    </watch>
+                                </image>
+                            </images>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>resource</goal>
+                                    <goal>build</goal>
+                                    <!--<goal>deploy</goal>-->
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>clean</id>
+            <build>
+                <plugins>
+
+                    <plugin>
+                        <artifactId>maven-clean-plugin</artifactId>
+                        <version>3.0.0</version>
+                        <configuration>
+                            <filesets>
+                                <fileset>
+                                    <directory>src/main/static/node_modules</directory>
+                                </fileset>
+                            </filesets>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>

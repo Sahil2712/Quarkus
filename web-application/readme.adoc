@@ -1,0 +1,41 @@
+= Web Application (UI)
+:url-openapi-spec: https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md
+
+== Development
+
+NOTE: The first build will be slow due to the installation of NPM in your user directory under .microprofile
+
+To build and run the application in its own TomEE instance:
+
+----
+$ mvn clean package tomee:run -pl :web-application -DskipTests
+----
+
+To make TomEE pick up changes to any static resources, typescript files, templates or style sheets:
+
+----
+$ cd web-application
+$ mvn frontend:gulp
+----
+
+Hint: Create a run configuration in your IDE for each of the above.
+
+== Running the Web Application (UI)
+
+This starts the UI app and all services running in an embedded container.
+The landing page is http://localhost:8080
+
+.Console 1
+----
+mvn clean package tomee:run -pl :web-application -DskipTests
+----
+
+This starts a gulp task that monitors and updates changes to the static resources.
+
+.Console 2
+----
+$ cd web-application
+$ mvn frontend:gulp
+----
+
+Open a browser at http://localhost:8080/

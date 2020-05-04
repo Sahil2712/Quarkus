@@ -1,0 +1,118 @@
+image:https://badges.gitter.im/eclipse/microprofile-samples.svg[link="https://gitter.im/eclipse/microprofile-samples"]
+
+= Microprofile Showcase Application
+
+== General information
+
+The application consists of several Microservices and a Web-Application managing a conference :
+
+[options="header"]
+|=====
+| Microservice Name | Powered By | Description | Technologies
+| link:/microservice-schedule/README.adoc[microservice-schedule] | https://www.payara.fish/payara_micro[Payara Micro] | Schedule of the conference | JAX-RS, CDI 
+| link:/microservice-session/README.adoc[microservice-session] | http://wildfly-swarm.io/[WildFly Swarm] | Sessions of the conference | JAX-RS, CDI, JSON-P
+| link:/microservice-speaker/readme.adoc[microservice-speaker] | http://tomee.apache.org/[Apache TomEE] | Speakers of the conference | JAX-RS, CDI, JSON
+| link:/microservice-vote/README.adoc[microservice-vote] | https://developer.ibm.com/wasdev/[WebSphere Liberty] | Votes for each session | JAX-RS, CDI, JSON-P, MP Config, MP Fault Tolerance, MP Metrics, MP Health
+| link:/web-application/readme.adoc[web-application] |  http://tomee.apache.org/[Apache TomEE] | Frontend UI | Angular2, Bootstrap4
+|=====
+
+The WebApp is a direct subscriber to the individual Microservices.
+This means that there is no aggregator / middle-man application.
+The WebApp itself provides a known relative EndPoint microservice that enables the lookup of
+URLs to the other services.
+
+== Quickstart - Run all services and UI in separate runtimes
+
+This will run each service in the runtime container that its setup for and the UI in a Node.js server to interact with them.
+
+Build, package and run all microservices and the UI:
+----
+mvn clean package -P start,ui
+----
+
+Run just the microservices:
+----
+mvn package -Pstart -pl :microservice-start
+----
+
+Run just the UI:
+----
+mvn package -Pui -pl :microservice-start
+----
+
+=== Running on Liberty
+
+To run all the services on individual WebSphere Liberty servers add the 'liberty' profile to the command:
+
+----
+mvn clean package -P start,ui,liberty
+----
+
+----
+mvn package -P start,liberty -pl :microservice-start
+----
+
+== Development Build
+
+----
+mvn clean install -DskipTests
+----
+
+* Build the projects using Maven (`mvn clean install`) or (`mvn -fn clean install`) to skip over failed tests.
+* To get the technical documentation, just `mvn clean generate-resources` under the `docs` directory.
+You will find a PDF and HTML version of the documentation under `docs/target/generated-docs`
+
+== Development Tests
+
+mvn clean test
+
+== Run Individual Services
+
+Each service can run on any container (this is the Microprofile guarantee),
+but the service projects have been written by vendors to use their container.  See the README.adoc of each microservice for details on how to run each microservice individually.
+
+== Getting involved
+If you would like to participate in the community effort to advance EE then by all
+means feel free to join us on the following sites:
+
+* http://microprofile.io/[Microprofile.io] - The community landing site.
+* https://groups.google.com/forum/#!forum/microprofile[Google+ Microprofile groups] - Public discussion lists (We do not have private lists).
+* https://waffle.io/microprofile/microprofile-conference/join[Kanban board] - A nice Kanban integration for our GitHub issues.
+* https://github.com/microprofile[All source code] - https://www.apache.org/licenses/LICENSE-2.0[Apache Licence V2] project OSS code.
+
+== Common problems/bugs
+
+=== NPM issues
+
+The web-application project uses the *com.github.eirslett:frontend-maven-plugin* to download
+and install all node and npm requirements.
+Sometimes this may fail if console permissions are not permissive enough.
+
+In such cases you will have to manually install some reqiurements:
+
+<1> Download and install node: https://nodejs.org/en/download/current/
+
+<2> Install npm manually:
+
+----
+cd web-application/src/main/static
+npm install npm
+npm install typings --global
+typings install --global
+----
+
+== Access to canonical source code
+
+* https://github.com/microprofile/microprofile-conference
+
+== Notes
+
+This application is a collaborative demonstration application by:
+
+* WebSphere Liberty
+* London Java Community
+* SouJava
+* Red Hat
+* Tomitribe
+* Payara
+
