@@ -19,6 +19,6 @@ import javax.ws.rs.core.Application;
 /**
  * @author Iain Duncan
  */
-@ApplicationPath("/country")
+@ApplicationPath("/")
 public class SessionApplication extends Application {
 }
